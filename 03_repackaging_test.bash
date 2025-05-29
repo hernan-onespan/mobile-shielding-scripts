@@ -28,7 +28,7 @@ desinstalar_app "$apk_dir"
 
 listar_apks "$apk_dir"
 
-repackaged_apk_dir=$apk_dir/repackaged
+repackaged_apk_dir=$apk_dir/03_repackaged
 
 # Crear una copia de los apks originales
 mkdir -p $repackaged_apk_dir # -p: no falla si el directorio ya existe
@@ -38,6 +38,6 @@ archivo_keystore="utils/keystore"
 
 generar_certificado $archivo_keystore
 
-firmar_app $repackaged_apk_dir $achivo_keystore
+firmar_app $repackaged_apk_dir $archivo_keystore
 
 instalar_app $repackaged_apk_dir

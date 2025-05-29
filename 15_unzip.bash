@@ -20,7 +20,7 @@ if [ ! -d "$apk_dir" ]; then
 
 listar_apks $apk_dir
 
-unzipped_dir=$apk_dir/unzipped
+unzipped_dir=$apk_dir/15_unzipped
 mkdir -p $unzipped_dir
 
 # Iterar sobre cada archivo en el directorio
@@ -29,7 +29,8 @@ for archivoAPK in "$apk_dir"/*.apk; do
     archivoZIP="${archivoAPK%.*}.zip" # reemplaza .apk por .zip
 	nombreArchivo=$(basename "$archivoAPK")
 	cp $archivoAPK $archivoZIP 
-    unzip -o -q $archivoZIP -d $unzipped_dir/$nombreArchivo # o: overwrite q: quiet
+        echo unzip -o -q $archivoZIP -d $unzipped_dir/$nombreArchivo # o: overwrite q: quiet
+        unzip -o -q $archivoZIP -d $unzipped_dir/$nombreArchivo # o: overwrite q: quiet
 	rm $archivoZIP
   fi
 done

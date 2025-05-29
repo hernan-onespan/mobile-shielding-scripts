@@ -202,16 +202,17 @@ while [ $attempt -lt $max_retries ]; do
   echo "[enviar_a_appshielding()] [download_url_response] $download_url_response" >> $archivo_debug
   echo "[enviar_a_appshielding()] [download_url] $download_url" >> $archivo_debug
 
-  mkdir $directorio/shielded
+  shielded_dir=$directorio/shielded
+  mkdir -p $shielded_dir
     if [ -n "$download_url" ] && [ "$download_url" != "null" ]; then
-	  output_name="$directorio/shielded/${archivo%.*}.zip" # reemplaza .apk por .zip
+	  output_name="$shielded_dir/${archivo%.*}.zip" # reemplaza .apk por .zip
       echo "Descargando APK blindado como $output_name..."
       curl -s -L -o "$output_name" "$download_url"
       echo -e "${GREEN}APK blindado guardado como '$output_name'.${NC}"
       # Descomprimir
       unzip -o -q $output_name -d $directorio/shielded # o: overwrite q: quiet
-	  rm $directorio/shielded/config.json
-	  rm $directorio/shielded/mapping.txt
+	  rm $shielded_dir/config.json
+	  rm $shielded_dir/mapping.txt
 	  rm $output_name
 	else
       echo -e "${RED}Error: no se encontró downloadUrl en la respuesta.${NC}"

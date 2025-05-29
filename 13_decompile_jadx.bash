@@ -21,20 +21,8 @@ if [ ! -d "$apk_dir" ]; then
 
 listar_apks $apk_dir
 
-decompiled_dir=$apk_dir/decompiled.jadx
-mkdir -p $decompiled_dir
-
-# Iterar sobre cada archivo en el directorio
-for archivoAPK in "$apk_dir"/*.apk; do
-  if [ -f "$archivoAPK" ]; then
-	nombreArchivo=$(basename "$archivoAPK")
-	nombreArchivoSinExtension="${nombreArchivo%.*}" 
-	echo $nombreArchivo 
-	jadx --no-res $archivoAPK -d $decompiled_dir/$nombreArchivoSinExtension # Descompilar el archivo con JADX
-  fi
-done
-
-
+decompiled_dir=$apk_dir/13_decompiled.jadx
+decompilar_jadx $apk_dir $decompiled_dir
 
 exit 0
 

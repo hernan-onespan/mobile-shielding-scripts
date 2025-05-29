@@ -20,18 +20,8 @@ if [ ! -d "$apk_dir" ]; then
 
 listar_apks $apk_dir
 
-decompiled_dir=$apk_dir/decompiled.apktool
-mkdir -p $decompiled_dir
-
-# Iterar sobre cada archivo en el directorio
-for archivoAPK in "$apk_dir"/*.apk; do
-  if [ -f "$archivoAPK" ]; then
-	nombreArchivo=$(basename "$archivoAPK")
-	nombreArchivoSinExtension="${nombreArchivo%.*}" 
-	echo $nombreArchivo 
-	apktool.bat d $archivoAPK -o $decompiled_dir/$nombreArchivoSinExtension -f # Descompilar el archivo con APK tool
-  fi
-done
+decompiled_dir=$apk_dir/11_decompiled.apktool
+decompilar_apktool $apk_dir $decompiled_dir
 
 exit 0
 
