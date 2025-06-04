@@ -36,6 +36,21 @@ desinstalar_app() {
 	fi
 }
 
+# run_apksigner ()
+# 
+# Llama al comando que corresponda en funcion del sistema operativo
+#
+run_apksigner() {
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        apksigner "$@"
+    elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
+        apksigner.bat "$@"
+    else
+        echo "Sistema operativo no reconocido: $OSTYPE"
+        exit 1
+    fi
+} 
+
 # imprimir_certificados(app_dir)
 # Busca todos los archivos .apk en el directorio e imprime el certificado
 #
@@ -83,21 +98,6 @@ listar_apks() {
   echo " "
  }
 
-# run_apksigner ()
-# 
-# Llama al comando que corresponda en funcion del sistema operativo
-#
-run_apksigner() {
-    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        apksigner "$@"
-    elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
-        cmd.exe /c apksigner.bat "$@"
-    else
-        echo "Sistema operativo no reconocido: $OSTYPE"
-        exit 1
-    fi
-} 
-
 # run_apktool ()
 # 
 # Llama al comando que corresponda en funcion del sistema operativo
@@ -107,7 +107,7 @@ run_apktool() {
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         apktool "$@"
     elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
-        cmd.exe /c apktool.bat "$@"
+        apktool.bat "$@"
     else
         echo "Sistema operativo no reconocido: $OSTYPE"
         exit 1
