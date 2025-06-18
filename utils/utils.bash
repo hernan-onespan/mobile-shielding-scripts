@@ -139,7 +139,8 @@ run_jadx_gui() {
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         jadx-gui "$@"
     elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
-        cmd.exe /c jadx-gui.bat "$@"
+		echo jadx-gui-1.5.1.exe "$@"
+        jadx-gui-1.5.1.exe "$@"
     else
         echo "Sistema operativo no reconocido: $OSTYPE"
         exit 1
@@ -230,14 +231,14 @@ for archivoAPK in "$apk_dir"/*.apk; do
 done
 }
 
-decompilar_jadx_gui() {
+jadx_gui() {
   apk_dir=$1 
 
 # Iterar sobre cada archivo en el directorio
 for archivoAPK in "$apk_dir"/*.apk; do
   if [ -f "$archivoAPK" ]; then
 	echo $archivoAPK 
-	run_jadx_gui --deobf --no-res-resolve $archivoAPK # Descompilar el archivo con JADX GUI
+	run_jadx_gui $archivoAPK # Descompilar el archivo con JADX GUI
   fi
 done
 }
