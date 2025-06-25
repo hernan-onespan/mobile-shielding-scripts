@@ -19,8 +19,9 @@ if [ ! -d "$apk_dir" ]; then
 # ================== LOGICA PRINCIPAL ==================
 
 echo
-info "Sideloading Test $apk_dir"
-echo Instala la app via USB, en lugar de hacerlo desde una tienda oficial
+info "Instalar $apk_dir"
+echo Instala la app original via USB
+echo Si hay una version existente, primero la desinstala
 echo 
 
 listar_apks "$apk_dir"
