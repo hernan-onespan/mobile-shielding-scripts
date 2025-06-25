@@ -282,3 +282,5 @@ deactivate
 echo "✅ Análisis completo."
 
 }
+
+
