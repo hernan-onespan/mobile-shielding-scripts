@@ -2,6 +2,6 @@
 
 *
 !*.bash
-
+!utils/frida
 
 

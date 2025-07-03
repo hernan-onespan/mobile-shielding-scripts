@@ -3,11 +3,14 @@
 # ================== CONFIGURACIÓN ==================
 source "$(dirname "$0")/utils/config.env"
 source "$(dirname "$0")/utils/utils.bash"
+archivo_debug=utils/requests.debug
 # ===================================================
 
-archivo_debug=utils/requests.debug
 
-# Función para obtener el bearer token
+# =========================================
+# obtener_bearer_token
+# Obtiene el bearer token de autenticación
+# =========================================
 obtener_bearer_token() {
   local auth_header
   auth_header=$(echo -n "$clientid:$clientsecret" | base64 -w0)
@@ -33,22 +36,24 @@ obtener_bearer_token() {
   if [ "$token" != "null" ] && [ -n "$token" ]; then
     echo "$token"
   else
-    echo "Error al obtener token. Respuesta:" >&2
-    echo "$response" >&2
+    error "Error al obtener token. Respuesta: $response"
     exit 1
-	fi
+  fi
 }
 
-# Función para enviar JSON a la API de App Shielding y luego hacer un PUT con el archivo binario
+# =========================================
+# enviar_a_appshielding (archivo, token, directorio)
+# Envia un APK a OneSpan App Shielding y maneja el flujo completo
+# =========================================
 enviar_a_appshielding() {
   local archivo="$1"
   local token="$2"
   local directorio="$3"
   local ubicacionArchivo=$3\\$1
 
-  echo "Enviando archivo '$ubicacionArchivo' a la API..."
+  info "Enviando archivo '$ubicacionArchivo' a la API..."
 
-  # Obtener URL de carga
+  # Obtener URL para subir el archivo
   local url_request
   url_request=$(echo "curl --silent --location 'https://api-appshielding.mobile.onespan.com/v1/shieldingapps' \
     --header \"Content-Type: application/json\" \
@@ -74,7 +79,7 @@ enviar_a_appshielding() {
 
   echo "[enviar_a_appshielding()] url=$url" >> $archivo_debug
   echo "[enviar_a_appshielding()] uuid=$uuid" >> $archivo_debug
-  echo "uuid=$uuid" 
+  titulo "uuid=$uuid" 
   
   if [ "$url" == "null" ] || [ -z "$url" ]; then
     echo "Error: No se obtuvo la URL de respuesta. Respuesta completa:" >&2
@@ -135,7 +140,7 @@ enviar_a_appshielding() {
   echo "[enviar_a_appshielding()] [shield_status] $shield_status" >> $archivo_debug
   echo "[enviar_a_appshielding()] [shield_response] " >> $archivo_debug
   cat $shield_response >> $archivo_debug
-	  	    
+	    
   local=shield_uuid # Tiene que ser igual a la anterior
   shield_uuid=$(cat "$shield_response" | jq -r '.uuid')
   			
@@ -151,9 +156,10 @@ enviar_a_appshielding() {
 
   rm "$shield_response"
   
+
 echo "Esperando a que el blindaje finalice..."
 
-max_retries=20
+max_retries=60
 sleep_seconds=10
 attempt=0
 
@@ -184,6 +190,10 @@ while [ $attempt -lt $max_retries ]; do
   echo "[enviar_a_appshielding()] [progress_response] $progress_response" >> $archivo_debug
   echo "[enviar_a_appshielding()] [progress_status] $progress_status" >> $archivo_debug
   
+  if [ "$progress_status" == "FAILED" ]; then
+    error "Blindaje falló."
+  fi
+
   if [ "$progress_status" == "SUCCESS" ]; then
     echo " "
     echo -e "${GREEN}Blindaje completado exitosamente.${NC}"
@@ -221,7 +231,6 @@ while [ $attempt -lt $max_retries ]; do
 	
     break
   fi
-  
 
   sleep $sleep_seconds
 done
@@ -237,6 +246,8 @@ fi
 
 # ================== VALIDAR DATOS DE ENTRADA ==================
 
+titulo "\n-> Blindar una aplicacion por API"
+
 # Verificar argumento
 if [ -z "$1" ]; then
   echo "Uso: $0 <nombre-del-directorio>"
@@ -244,27 +255,42 @@ if [ -z "$1" ]; then
 fi
 
 # Eliminar barra final si existe
-directorio="${1%/}"
+packageName="${1%/}"
 
-if [ ! -d "$directorio" ]; then
-  echo "El directorio '$directorio' no existe."
+if [ ! -d "$packageName" ]; then
+  echo "El directorio '$packageName' no existe."
   exit 1
 fi
 
+# ================== CERTIFICADO PARA FIRMAR APPS ==================
+
+archivo_keystore="utils/keystore"
+
+generar_certificado $archivo_keystore
+
 # ================== LÓGICA PRINCIPAL ==================
 
-echo "Obteniendo bearer token..."
+info "\nObteniendo bearer token..."
 bearertoken=$(obtener_bearer_token)
-echo "Token: $bearertoken"
-echo " "
-echo "Archivos en '$directorio':"
-ls -1 "$directorio"
+info "Token: $bearertoken"
+echo "Archivos en '$packageName':"
+ls -1 "$packageName"
 echo " "
 
 # Iterar sobre cada archivo en el directorio
-for archivo in "$directorio"/*.apk; do
+for archivo in "$packageName"/*.apk; do
   if [ -f "$archivo" ]; then
     filename=$(basename "$archivo")
-    enviar_a_appshielding "$filename" "$bearertoken" "$directorio"
+    enviar_a_appshielding "$filename" "$bearertoken" "$packageName"
   fi
 done
+
+shieldedApkDir="$packageName/shielded"
+
+firmar_app "$shieldedApkDir" "$archivo_keystore"
+		
+desinstalar_app "$packageName"		
+		
+instalar_app "$shieldedApkDir"
+		
+ejecutar_app "$packageName"		

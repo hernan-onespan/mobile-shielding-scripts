@@ -13,6 +13,12 @@ fi
 
 pattern="$1"
 
+# ================== VERIFICAR DISPOSITIVO ==================
+if ! adb get-state 1>/dev/null 2>&1; then
+    echo "❌ No hay dispositivos ADB conectados."
+    exit 1
+fi
+
 # Buscar paquetes que coincidan con el patrón
 packages=$(adb shell pm list packages | grep "$pattern" | sed 's/package://')
 

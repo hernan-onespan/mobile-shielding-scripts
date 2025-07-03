@@ -16,14 +16,12 @@ if [ ! -d "$apk_dir" ]; then
   exit 1
   fi
 
-# ================== LOGICA PRINCIPAL ==================
+# ================== LÓGICA PRINCIPAL ==================
 
-echo
-info "APKid $apk_dir"
-echo Ejecuta apk_id
-echo 
+archivo_keystore="utils/keystore"
 
-listar_apks $apk_dir
+generar_certificado $archivo_keystore
 
-ejecutar_apkid $apk_dir
+imprimir_certificados "$apk_dir"
 
+firmar_app "$apk_dir" "$archivo_keystore"

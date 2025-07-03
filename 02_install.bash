@@ -7,32 +7,38 @@ source utils/utils.bash
 if [ -z "$1" ]; then
   echo "Uso: $0 <apk_dir>"
   exit 1
-  fi
-  
+fi
+
 apk_dir="${1%/}" # Eliminar barra final si existe
+
+# Normalizar separadores a /
+apk_dir=$(echo "$apk_dir" | sed 's|\\|/|g')
 
 if [ ! -d "$apk_dir" ]; then
   echo "El directorio '$apk_dir' no existe."
   exit 1
-  fi
+fi
+
+# ================== EXTRAER packageName ==================
+
+# Extraer todo antes de la primera barra
+packageName="${apk_dir%%/*}"
 
 # ================== LOGICA PRINCIPAL ==================
 
 echo
-info "Instalar $apk_dir"
-echo Instala la app original via USB
-echo Si hay una version existente, primero la desinstala
-echo 
+titulo "-> Instalar $apk_dir"
+info "Package name: $packageName"
+info "Instala la app original via USB"
+info "Si hay una versión existente, primero la desinstala"
+info
 
 listar_apks "$apk_dir"
 
-desinstalar_app "$apk_dir"
+desinstalar_app "$packageName"
 
-imprimir_certificados "$apk_dir"  
+imprimir_certificados "$apk_dir"
 
-instalar_app "$apk_dir"  
+instalar_app "$apk_dir"
 
-
-
-
-
+ejecutar_app "$packageName"
