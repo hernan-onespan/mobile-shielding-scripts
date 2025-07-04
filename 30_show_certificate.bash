@@ -19,5 +19,4 @@ if [ ! -d "$apk_dir" ]; then
 
 # ================== LÓGICA PRINCIPAL ==================
 
-
-imprimir_certificados "$apk_dir"
+imprimir_certificados_detalle "$apk_dir"

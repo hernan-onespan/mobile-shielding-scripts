@@ -6,9 +6,9 @@
 
 # Detectar barra según sistema
 slash="/"
-case "$(uname -s)" in
-  CYGWIN*|MINGW*|MSYS*) slash="\\" ;;
-esac
+#case "$(uname -s)" in
+#  CYGWIN*|MINGW*|MSYS*) slash="\\" ;;
+#esac
 
 # Colores ANSI para mensajes
 RED='\033[0;31m'
@@ -58,8 +58,9 @@ error() {
 # =========================================
 run_cmd() {
   local cmd="$1"
-  info "[CMD] $cmd"
-  eval "$cmd" 1>&2
+  alerta "[CMD] $cmd"
+  # Ejecutar el comando sin interpretación de escapes
+  bash -c "$cmd" 1>&2
 }
 
 # =========================================
@@ -100,8 +101,24 @@ imprimir_certificados() {
   local archivoAPK
   for archivoAPK in "$apk_dir"${slash}*.apk; do
     if [ -f "$archivoAPK" ]; then
-      echo "$archivoAPK"
-      run_apksigner verify --print-certs "$archivoAPK" | grep certificate
+	  echo "" 
+      run_apksigner "verify --print-certs "$archivoAPK" | grep certificate"
+      # run_apksigner verify -verbose "$archivoAPK"
+    fi
+  done
+}
+
+# =========================================
+# imprimir_certificados_detalle (apk_dir)
+# Imprime los certificados de los APKs en el directorio con mayor detalle que imprimir_certificados()
+# =========================================
+imprimir_certificados_detalle() {
+  local apk_dir=$1
+  local archivoAPK
+  for archivoAPK in "$apk_dir"${slash}*.apk; do
+    if [ -f "$archivoAPK" ]; then
+	  echo "" 
+      run_apksigner "verify --print-certs \"$archivoAPK\"" 
       run_apksigner verify -verbose "$archivoAPK"
     fi
   done
@@ -227,8 +244,8 @@ firmar_app() {
     
   for archivo_apk in "${apk_dir}"/*.apk; do
     if [ -f "$archivo_apk" ]; then
-      run_apksigner sign --ks "$archivo_keystore" --ks-pass pass:0n3sp4n "$archivo_apk"
-      run_apksigner verify --print-certs "$archivo_apk" | grep certificate
+      run_apksigner sign --ks "$archivo_keystore" --ks-pass pass:0n3sp4n "$archivo_apk" 
+      run_apksigner "verify --print-certs \"$archivo_apk\" | grep certificate"
       archivo_idsig="${archivo_apk}.idsig"
       if [ -f "$archivo_idsig" ]; then
         run_cmd "rm -f '$archivo_idsig'"
@@ -398,26 +415,51 @@ chequear_directorio() {
 }
 
 # =========================================
-# blindar_local (packageName, shieldingConfigurationName)
-# Blinda una APK localmente usando una configuración específica
-# Retorna por stdout el path del directorio donde queda la app blindada
+# blindar_apks (apkDir, shieldingConfigurationFile)
+# Blinda todos los APKs en un directorio usando el archivo de configuración especificado
 # =========================================
-blindar_local() {
-  local packageName="$1"
-  local shieldingConfigurationName="$2"
+blindar_apks() {
+  local apkDir="$1"
+  local shieldingConfigurationFile="$2"
 
-  if [[ -z "$packageName" || -z "$shieldingConfigurationName" ]]; then
-    >&2 echo "Error: Uso: blindar_local <packageName> <shieldingConfigurationName>"
+  if [ ! -d "$apkDir" ]; then
+    echo "❌ Directorio no encontrado: $apkDir"
     return 1
   fi
 
-  local unshieldedApkFile="${packageName}${slash}base.apk"
-  local shieldedApkDir="${packageName}${slash}shielded${slash}${shieldingConfigurationName}"
-  local shieldedApkFile="${shieldedApkDir}${slash}base.apk"
-  local shieldingConfigurationFile="${shieldingConfigurationDir}${slash}${shieldingConfigurationName}.xml"
+  if [ ! -f "$shieldingConfigurationFile" ]; then
+    echo "❌ Archivo de configuración no encontrado: $shieldingConfigurationFile"
+    return 1
+  fi
 
-  titulo "\n-> Blindando $packageName con configuración $shieldingConfigurationName"
-  run_cmd "java -jar \"$shielderJar\" \"$unshieldedApkFile\" --config \"$shieldingConfigurationFile\" --output \"$shieldedApkFile\""
+  local shieldingConfigurationName
+  shieldingConfigurationName=$(basename "$shieldingConfigurationFile" .xml)
+  local shieldedApkDir="${apkDir}/${shieldingConfigurationName}"
+  chequear_directorio "$shieldedApkDir"
 
-  echo "$shieldedApkDir"
+  titulo "\n-> Blindando APKs con configuración: $shieldingConfigurationFile"
+  echo "📁 Procesando APKs en: $apkDir"
+  echo "⚙️  Configuración de blindaje: $shieldingConfigurationFile"
+
+  for unshieldedApkFile in "$apkDir"/*.apk; do
+    [ -e "$unshieldedApkFile" ] || continue
+
+    local baseName
+    baseName=$(basename "$unshieldedApkFile")
+    local shieldedApkFile="${shieldedApkDir}/${baseName}"
+
+    echo "🔒 Blindando: $baseName"
+    local cmd="java -jar \"$shielderJar\" \"$unshieldedApkFile\" --config \"$shieldingConfigurationFile\" --output \"$shieldedApkFile\""
+    run_cmd "$cmd"
+
+    if [ -f "$shieldedApkFile" ]; then
+      echo "✅ Blindaje exitoso: $shieldedApkFile"
+      rm -f "$unshieldedApkFile"
+      echo "🗑️  APK original eliminado: $unshieldedApkFile"
+    else
+      echo "❌ Error al blindar $unshieldedApkFile"
+    fi
+
+    echo
+  done
 }

@@ -6,7 +6,6 @@ source "$(dirname "$0")/utils/utils.bash"
 archivo_debug=utils/requests.debug
 # ===================================================
 
-
 # =========================================
 # obtener_bearer_token
 # Obtiene el bearer token de autenticación
@@ -49,7 +48,7 @@ enviar_a_appshielding() {
   local archivo="$1"
   local token="$2"
   local directorio="$3"
-  local ubicacionArchivo=$3\\$1
+  local ubicacionArchivo=$3/$1
 
   info "Enviando archivo '$ubicacionArchivo' a la API..."
 
@@ -212,7 +211,7 @@ while [ $attempt -lt $max_retries ]; do
   echo "[enviar_a_appshielding()] [download_url_response] $download_url_response" >> $archivo_debug
   echo "[enviar_a_appshielding()] [download_url] $download_url" >> $archivo_debug
 
-  shielded_dir=$directorio/shielded
+  shielded_dir=$directorio/portal
   mkdir -p $shielded_dir
     if [ -n "$download_url" ] && [ "$download_url" != "null" ]; then
 	  output_name="$shielded_dir/${archivo%.*}.zip" # reemplaza .apk por .zip
@@ -220,9 +219,9 @@ while [ $attempt -lt $max_retries ]; do
       curl -s -L -o "$output_name" "$download_url"
       echo -e "${GREEN}APK blindado guardado como '$output_name'.${NC}"
       # Descomprimir
-      unzip -o -q $output_name -d $directorio/shielded # o: overwrite q: quiet
-	  rm $shielded_dir/config.json
-	  rm $shielded_dir/mapping.txt
+      unzip -o -q $output_name -d $shielded_dir # o: overwrite q: quiet
+	  # rm $shielded_dir/config.json
+	  # rm $shielded_dir/mapping.txt
 	  rm $output_name
 	else
       echo -e "${RED}Error: no se encontró downloadUrl en la respuesta.${NC}"
@@ -262,6 +261,20 @@ if [ ! -d "$packageName" ]; then
   exit 1
 fi
 
+DIR_PREFIX="${1%/}" # Eliminar barra final si existe
+
+if [ -d "$DIR_PREFIX" ]; then
+  MATCHED_DIRS=("$DIR_PREFIX")
+else
+  # Buscar todos los directorios que coincidan
+  MATCHED_DIRS=($(find . -maxdepth 1 -type d -name "*${DIR_PREFIX}*" | sed 's|^\./||'))
+fi
+
+if [ ${#MATCHED_DIRS[@]} -eq 0 ]; then
+  echo "❌ No se encontraron directorios que coincidan con '$DIR_PREFIX'"
+  exit 1
+fi
+
 # ================== CERTIFICADO PARA FIRMAR APPS ==================
 
 archivo_keystore="utils/keystore"
@@ -270,27 +283,50 @@ generar_certificado $archivo_keystore
 
 # ================== LÓGICA PRINCIPAL ==================
 
-info "\nObteniendo bearer token..."
+titulo "\n-> Obtener un token del portal"
 bearertoken=$(obtener_bearer_token)
-info "Token: $bearertoken"
-echo "Archivos en '$packageName':"
-ls -1 "$packageName"
-echo " "
+info "Bearer token: $bearertoken"
 
-# Iterar sobre cada archivo en el directorio
-for archivo in "$packageName"/*.apk; do
-  if [ -f "$archivo" ]; then
-    filename=$(basename "$archivo")
-    enviar_a_appshielding "$filename" "$bearertoken" "$packageName"
-  fi
+for apkDirectory in "${MATCHED_DIRS[@]}"; do
+	echo 
+    read -p "¿Procesar '$apkDirectory'? (S/n): " RESP
+	if [[ -z "$RESP" || "$RESP" =~ ^[sS]$ ]]; then 
+
+        if [ ! -d "$apkDirectory" ]; then
+            echo "El directorio '$apkDirectory' no existe (¿Se eliminó?)."
+            continue
+        fi
+
+		# Extraer todo antes de la primera barra
+		packageName="${apkDirectory%%/*}"
+		
+		shieldedBaseDir=$apkDirectory/shielded
+		chequear_directorio "${shieldedBaseDir}"
+
+		shieldedApkDir="${shieldedBaseDir}/portal"
+		chequear_directorio "${shieldedApkDir}"
+
+		titulo "\n-> Hacer una copia para firmar con el certificado que vamos a usar despues de blindar"
+		run_cmd "cp $apkDirectory/*.apk $shieldedBaseDir" # 
+						
+		firmar_app "$shieldedBaseDir" "$archivo_keystore" # Firmar antes de blindar para evitar repackaging
+
+		# Iterar sobre cada archivo en el directorio
+		for archivo in "$shieldedBaseDir"/*.apk; do
+		  if [ -f "$archivo" ]; then
+			filename=$(basename "$archivo")
+			enviar_a_appshielding "$filename" "$bearertoken" "$shieldedBaseDir" 
+		  fi
+		done
+					
+		titulo "-> APK blindada en: $shieldedApkDir"
+		
+		firmar_app "$shieldedApkDir" "$archivo_keystore"
+		
+		desinstalar_app "$packageName"		
+		
+		instalar_app "$shieldedApkDir"
+		
+		ejecutar_app "$packageName"		
+	fi
 done
-
-shieldedApkDir="$packageName/shielded"
-
-firmar_app "$shieldedApkDir" "$archivo_keystore"
-		
-desinstalar_app "$packageName"		
-		
-instalar_app "$shieldedApkDir"
-		
-ejecutar_app "$packageName"		
