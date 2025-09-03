@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shield>
+    <config>
+        <applicationSignerCertificate v="auto"/>
+
+        <checkRooting v="true"/> <!-- Cannot be changed with release profile. -->
+        <exitOnRooting v="false"/>
+        <checkRootingDeepScan v="false"/>
+        <exitOnRootingHeuristicsThreshold v="0"/>
+        <exitOnRootingURL v="https://onespan.netlify.app/bna_rooted_device.html"/> 
+        <checkBootloaderStatus v="false"/>
+        <exitOnBootloaderStatus v="false"/>
+        <!-- <exitOnBootloaderStatusURL v=""/> -->
+
+        <checkTrustedKeyboard v="true"/>
+        <exitOnUntrustedKeyboard v="true"/>
+        <exitOnUntrustedKeyboardURL v="https://onespan.netlify.app/bna_keyboard.html"/> 
+        <!-- <addTrustedKeyboardSigner v=""/> -->
+        <!-- Samsung Keyboard Neural Beta: com.sec.android.inputmethod.beta -->
+        <addTrustedKeyboardSigner v="da09c54e4ba07e365cf90f0c1d90fbb11b2353fb5142aa4eb3e3c1dc9fe48983"/>
+        <!-- Microsoft SwiftKey Keyboard: com.touchtype.swiftkey -->
+        <!-- <addTrustedKeyboardSigner v="ea43e0f05f6ef9e5d16283d90504749d4e03630de7ea792c70f72b9be6c02e5e"/> -->
+
+        <checkTrustedScreenreaders v="true"/>
+        <blockUntrustedScreenreaders v="true"/>
+        <exitOnUntrustedScreenreaders v="false"/>
+        <!-- <exitOnUntrustedScreenreadersURL v=""/> -->
+
+        <!-- ClockBack and QueryBack -->
+        <addTrustedScreenreaderSigner v="dc152407a9a13ef757f0d38d0e379bb1da255c8cb82b3f975bec9f6a5ae08e00"/>
+        <!-- TalkBack -->
+        <addTrustedScreenreaderSigner v="df37f8d8023ce4776089cca07a8b4cf9adc36a80fc5b5075393450f1fb20caa8"/>
+        <!-- Samsung TalkBack: com.samsung.android.app.talkback -->
+        <addTrustedScreenreaderSigner v="da09c54e4ba07e365cf90f0c1d90fbb11b2353fb5142aa4eb3e3c1dc9fe48983"/>
+
+        <blockScreenshots v="true"/>
+
+        <checkScreenMirroring v="false" />
+        <blockScreenMirroring v="false" />
+
+        <!--
+        Enable the checkUntrustedInstaller configuration to check if any application
+        application which is installed via unknown/untrusted sources exists in the
+        device.
+
+        It is possible to white list app stores by using the
+          <addTrustedInstallerSigner> option.
+        -->
+        <checkUntrustedInstaller v="false"/>
+        <exitOnUntrustedInstaller v="false" />
+        <!-- <exitOnUntrustedInstallerURL v=""/> -->
+        <queryAllPackagesPermission v="false"/>
+
+        <!--
+        Examples for some known app stores:
+        -->
+        <!-- Google Play -->
+        <!-- <addTrustedInstallerSigner v="3c66420dc7a9e3714f531cae00ccd779e20dfb1c9c40113bf66416f41e366501"/> -->
+        <!-- Samsung Galaxy App Store -->
+        <!-- <addTrustedInstallerSigner v="d614a59f97cb719e47a01d101b76a9e4950d28e0a6919b651eec2de5056d4b05"/> -->
+        <!-- Huawei App Gallery -->
+        <!-- <addTrustedInstallerSigner v="167638c1e015f1fef536a6370f43007b25e164b02afa6fd2f4b1295aee46322f"/> -->
+        <!-- Xiaomi Market -->
+        <!-- <addTrustedInstallerSigner v="97191af2edf26865b2a529b23a1cda40dc455a56a572ab7c0d4b0ff38106a0db"/> -->
+        <!-- LG SmartWorld Store -->
+        <!-- <addTrustedInstallerSigner v="b67fedd52cbc309ce7bfbba7440bca88bb926a242b17b69374fcd065f0ae57c2"/> -->
+
+        <!-- Check if the app is running in Android 15 "Private Space", or in a "Work Profile": -->
+        <checkPrivateSpace v="true"/>
+        <exitOnPrivateSpace v="false"/>
+        <!-- <exitOnPrivateSpaceURL v="" /> -->
+
+        <checkAppInVirtualSpace v="false"/>
+        <exitOnAppInVirtualSpace v="false"/>
+        <!-- <exitOnAppInVirtualSpaceURL v="" /> -->
+
+        <checkEmulatedInput v="false"/>
+        <blockEmulatedInput v="false"/>
+        <exitOnEmulatedInput v="false"/>
+        <!-- <exitOnEmulatedInputURL v=""/> -->
+
+        <checkTapjacking                    v="false"/>
+        <blockTapjacking                    v="false"/>
+        <blockNonSystemOverlays             v="false"/>
+
+        <checkAdbStatus v="false"/>
+        <exitOnAdbStatus v="false" />
+        <!-- <exitOnAdbStatusURL v=""/> -->
+
+        <checkDeveloperOptions v="true"/>
+        <exitOnDeveloperOptions v="false" />
+        <exitOnDeveloperOptionsURL v="https://onespan.netlify.app/bna_developer_options.html" />
+
+        <!-- Advanced options -->
+        <enableCodeTracingDetection v="false"/>
+        <advancedDebugGuard v="false" />
+        <shutdownImmediately v="false" />
+
+    </config>
+</shield>

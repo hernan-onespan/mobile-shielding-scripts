@@ -266,6 +266,7 @@ generar_certificado() {
   if [ ! -f "$archivo_keystore" ]; then
     run_cmd "keytool -genkey -v -keystore '$archivo_keystore' -alias android -keyalg RSA -keysize 2048 -validity 10000 -dname 'CN=Hernan Giraudo' -storepass 0n3sp4n"
     run_cmd "keytool -list -v -keystore '$archivo_keystore' -storepass 0n3sp4n"
+	run_cmd "keytool -export -alias android -keystore "$archivo_keystore" -file utils/HernanGiraudo.crt -storepass 0n3sp4n" # no tiene la clave privada
     info "Keystore generado en $archivo_keystore"
   else
     info "El archivo '$archivo_keystore' ya existe. No se genera uno nuevo."
