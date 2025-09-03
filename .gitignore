@@ -1,6 +1,6 @@
 # Ignorar todo
 
-*
+# *
 !*.bash
 !*/frida/*
 *.debug
