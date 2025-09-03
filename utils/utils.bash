@@ -288,7 +288,7 @@ ejecutar_apkid() {
       filename=$(basename "$archivo_apk")
       output_file="$output_dir/$filename.log"
       info "Analizando con APKID: $archivo_apk"
-      run_cmd "/home/hernan/rasp/tools/APKiD/docker/apkid.sh --verbose '$archivo_apk' > '$output_file'"
+      run_cmd "/home/hernan/rasp/tools/APKiD/docker/apkid.sh --verbose --timeout 300 '$archivo_apk' > '$output_file'" 
     fi
   done
 }

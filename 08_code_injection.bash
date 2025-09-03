@@ -2,7 +2,7 @@
 
 source utils/utils.bash
 
-FRIDA_SCRIPT="frida/arrow.js"  # Script Frida a inyectar
+FRIDA_SCRIPT="utils/frida/arrow.js"  # Script Frida a inyectar
 
 # ================== VERIFICAR CLIENTE FRIDA ==================
 FRIDA_VERSION=$(frida --version 2>/dev/null)
